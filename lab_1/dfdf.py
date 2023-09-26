@@ -299,15 +299,27 @@ f_ui = np.empty(len(frequency_array_np))
 yi = np.empty(len(frequency_array_np))
 ni = np.empty(len(frequency_array_np))
 
+#таблица 16
 for i in range(len(frequency_array_np)):
-    xi__x[i] = interval_middle_array_np[i] - sample_average_x
-    ui[i] = xi__x[i] / sample_mean_square_deviation_S
-    f_ui[i] = ui[i]
-    yi[i] = n*h / sample_mean_square_deviation_S * f_ui[i]
-    ni[i] = round(yi[i])
+    xi__x[i] = round((interval_middle_array_np[i] - sample_average_x), 2)
+    ui[i] = round((xi__x[i] / sample_mean_square_deviation_S), 2)
+    f_ui[i] = round((1 / (math.sqrt(2 * math.pi)) * math.exp(-(math.pow(ui[i], 2) / 2))), 4)
+    yi[i] = round((n*h / sample_mean_square_deviation_S * f_ui[i]), 1)
+    ni[i] = int(round(yi[i]))
 
-print(yi)
-print(ni)
+n__ni = np.empty(len(frequency_array_np))
+n__ni2 = np.empty(len(frequency_array_np))
+n__ni2__ni = np.empty(len(frequency_array_np))
+hi2 = 0
+
+for i in range(len(frequency_array_np)):
+    n__ni[i] = frequency_array_np[i] - ni[i]
+    n__ni2[i] = pow(n__ni, 2)
+    n__ni2__ni[i] = n__ni2[i] / ni[i]
+    hi2+=n__ni2__ni[i]
+    
+print(hi2)
+
 
 ################################################################################################
 
