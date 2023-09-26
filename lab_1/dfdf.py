@@ -24,7 +24,7 @@ list = [52, 33, 10, 22, 28, 34, 39, 29, 21, 27,
                 31, 12, 28, 40, 46, 51, 44, 32, 16, 11, 
                 29, 31, 38, 44, 31, 24, 9, 17, 32, 41, 
                 47, 31, 42, 15, 21, 29, 50, 55, 37, 19, 
-                57, 32, 7, 28, 23, 20, 45, 18, 29, 25]
+                56, 32, 7, 28, 23, 20, 45, 18, 29, 25]
 
 
 
@@ -298,6 +298,7 @@ ui = np.empty(len(frequency_array_np))
 f_ui = np.empty(len(frequency_array_np))
 yi = np.empty(len(frequency_array_np))
 ni = np.empty(len(frequency_array_np))
+print('jkjk', ni)
 
 #таблица 16
 for i in range(len(frequency_array_np)):
@@ -307,20 +308,47 @@ for i in range(len(frequency_array_np)):
     yi[i] = round((n*h / sample_mean_square_deviation_S * f_ui[i]), 1)
     ni[i] = int(round(yi[i]))
 
-n__ni = np.empty(len(frequency_array_np))
-n__ni2 = np.empty(len(frequency_array_np))
-n__ni2__ni = np.empty(len(frequency_array_np))
-hi2 = 0
+n__ni = np.zeros(len(frequency_array_np))
+n__ni2 = np.zeros(len(frequency_array_np))
+n__ni2__ni = np.zeros(len(frequency_array_np))
+print('n_nnq',n__ni)
+#хи в квадрате
+hi_square = 0
+
+number_of_degrees_of_freedom_k = k - 3
 
 for i in range(len(frequency_array_np)):
     n__ni[i] = frequency_array_np[i] - ni[i]
-    n__ni2[i] = pow(n__ni, 2)
+    n__ni2[i] = pow(n__ni[i], 2)
     n__ni2__ni[i] = n__ni2[i] / ni[i]
-    hi2+=n__ni2__ni[i]
+    hi_square += n__ni2__ni[i]
     
-print(hi2)
+critical_value_hi_square = 0.711
+
+if (critical_value_hi_square > hi_square):
+    print('X2_0 < X0_кр, нет достаточных оснований отвергнуть выдвинутую гипотезу о нормальном распределении признака Х')
+else:
+    print('X2_0 < X0_кр, гипотеза о нормальном распределении признака Х отвергается')
 
 
+kolmogor = round((abs(np.max(frequency_array_np) - np.max(ni)) / math.sqrt(n)), 1)
+sum_kolmogor_em = 0
+
+for i in range (1000):
+    sum_kolmogor_em = math.pow((-1), number_of_degrees_of_freedom_k) * math.exp(-2 * math.pow(number_of_degrees_of_freedom_k, 2) * math.pow(kolmogor, 2))
+funk_kolmogor_em = 1 - sum_kolmogor_em
+
+funk_kolmogor_ter = 1.0000
+
+if (abs(funk_kolmogor_em - funk_kolmogor_ter)>0.05):
+    print(round(abs(funk_kolmogor_em - funk_kolmogor_ter), 3), ': существенное расхождение между эмпирическим и теоретическим распределениями, которое нельзя считать \nслучайным. Следовательно, рассматриваемая выборка не может быть\n смоделирована нормальным законом распределения')
+else:
+    print(round(abs(funk_kolmogor_em - funk_kolmogor_ter), 3), 'расхождение между частотами может быть\nслучайным, и распределения хорошо соответствуют одно другому')
+
+
+
+Sasymmetry_A_S = math.sqtr((6 * (n-1))/((n+1)*(n+3)))
+Sexcess_E_x = math.sqrt((24 * n(n-2)*(n-3))/(math.pow((n-1), 2) * (n+3) * (n+5)))
 ################################################################################################
 
 ######################                   графики                 ###############################
@@ -329,9 +357,12 @@ with plt.style.context("dark_background"):
 
 
     figure = plt.figure()
-    ax1 = figure.add_subplot(2, 2, 1)
-    ax2 = figure.add_subplot(2, 2, 2)
-    ax3 = figure.add_subplot(2, 2, 3)
+    ax1 = figure.add_subplot(2, 3, 1)
+    ax2 = figure.add_subplot(2, 3, 2)
+    ax3 = figure.add_subplot(2, 3, 3)
+    ax4 = figure.add_subplot(2, 3, 4)
+    ax5 = figure.add_subplot(2, 3, 5)
+    ax6 = figure.add_subplot(2, 3, 6)
 
 ################################################################################################
 
@@ -342,9 +373,9 @@ with plt.style.context("dark_background"):
     y, edges, _ = ax1.hist(list, bins=intervals, histtype="bar", edgecolor = 'black', color='#9773ff', label='интервальный вр')
     ax1.plot(interval_middle_array, frequency_array , color='#beff73', marker='o', label='дискретный вр')
     ax1.legend(loc='best')
-    ax1.set_title('гистограмма и полигон', fontsize='16')
-    ax1.set_xlabel('середины интервалов', fontsize=12)
-    ax1.set_ylabel('частоты', fontsize=12)
+    ax1.set_title('гистограмма и полигон')
+    ax1.set_xlabel('середины интервалов')
+    ax1.set_ylabel('частоты')
     ax1.grid(color='grey')
 
 ################################################################################################
@@ -353,9 +384,9 @@ with plt.style.context("dark_background"):
 
     ax2.set_xticks(intervals)
     ax2.plot(interval_middle_array, cumulative_relative_frequencies, marker='o' , color='#beff73', label='кумулята')
-    ax2.set_title('кумулятивная кривая', fontsize='16')
-    ax2.set_xlabel('середины интервалов', fontsize=12)
-    ax2.set_ylabel('накопительные относительные частоты', fontsize=12)
+    ax2.set_title('кумулятивная кривая')
+    ax2.set_xlabel('середины интервалов')
+    ax2.set_ylabel('нак относ частоты')
     ax2.legend(loc='best')
     ax2.grid(color='grey')
 
@@ -366,12 +397,25 @@ with plt.style.context("dark_background"):
 
     ax3.set_xticks(intervals)
     ax3.step(ecdf.x, ecdf.y, color='#beff73', label='эфр')
-    ax3.set_title('эмпирическая функция распределения', fontsize='16')
+    ax3.set_title('эмпирическая функция распределения')
     ax3.grid(color='grey')
-    ax3.set_ylabel('$F(x)$', fontsize=12)
-    ax3.set_xlabel('$x$', fontsize=12)
+    ax3.set_ylabel('$F(x)$')
+    ax3.set_xlabel('$x$')
     ax3.legend(loc='best')
 
+
+################################################################################################
+
+######################              графики пункта              ###############################
+
+    ax4.set_xticks(interval_middle_array)
+    ax4.plot(interval_middle_array, ni, marker='o' , color='#beff73', label='теоретическая')
+    ax4.plot(interval_middle_array, frequency_array , color='#9773ff', marker='o', label='эмпирическая')
+    ax4.set_title('эмпирическая кривая распределения')
+    ax4.set_xlabel('середины интервалов')
+    ax4.set_ylabel('на')
+    ax4.legend(loc='best')
+    ax4.grid(color='grey')
 
     ################################################################################################
     # plt.show()
