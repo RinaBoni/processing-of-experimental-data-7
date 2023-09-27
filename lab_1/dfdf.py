@@ -127,13 +127,14 @@ print('частоты: ', frequency_array )
 
 #частоты в numpy массив
 frequency_array_np = np.array(frequency_array )
+ar_lengh = len(frequency_array_np)
 
 #относительные частоты
 relative_frequencies =  frequency_array_np / n
 
 #накопительные относительные частоты
-cumulative_relative_frequencies = np.empty(len(frequency_array_np))
-for i in range(len(frequency_array_np)):
+cumulative_relative_frequencies = np.zeros(ar_lengh)
+for i in range(ar_lengh):
     if i==0:
         cumulative_relative_frequencies[i] = 0 + relative_frequencies[i]
     else:
@@ -184,18 +185,18 @@ max_index = np.argmax(frequency_array_np)
 mode_M_o_X = interval_middle_array_np[max_index]
 
 #условные варианты
-conditional_options = np.empty(len(interval_middle_array_np))
-for i in range(len(conditional_options)):
+conditional_options = np.zeros(ar_lengh)
+for i in range(ar_lengh):
     conditional_options[i] = (interval_middle_array_np[i] - mode_M_o_X) / h
 
 #расчетная таблица 10
-n_u = np.empty(len(conditional_options))
-n_u2 = np.empty(len(conditional_options))
-n_u3 = np.empty(len(conditional_options))
-n_u4 = np.empty(len(conditional_options))
-n_u_1_2 = np.empty(len(conditional_options))
+n_u = np.zeros(ar_lengh)
+n_u2 = np.zeros(ar_lengh)
+n_u3 = np.zeros(ar_lengh)
+n_u4 = np.zeros(ar_lengh)
+n_u_1_2 = np.zeros(ar_lengh)
     
-for i in range(len(conditional_options)):
+for i in range(ar_lengh):
     n_u[i] = frequency_array_np[i] * conditional_options[i]
     n_u2[i] = frequency_array_np[i] * math.pow(conditional_options[i], 2)
     n_u3[i] = frequency_array_np[i] * math.pow(conditional_options[i], 3)
@@ -293,31 +294,33 @@ print('\n\n\n###################################################################
 
 print('######################                  Лабораторная 2                  ###############################\n')
 
-xi__x = np.empty(len(frequency_array_np))
-ui = np.empty(len(frequency_array_np))
-f_ui = np.empty(len(frequency_array_np))
-yi = np.empty(len(frequency_array_np))
-ni = np.empty(len(frequency_array_np))
-print('jkjk', ni)
+xi__x = np.zeros(ar_lengh)
+ui = np.zeros(ar_lengh)
+f_ui = np.zeros(ar_lengh)
+yi = np.zeros(ar_lengh)
+ni = np.zeros(ar_lengh)
 
 #таблица 16
-for i in range(len(frequency_array_np)):
+for i in range(ar_lengh):
     xi__x[i] = round((interval_middle_array_np[i] - sample_average_x), 2)
     ui[i] = round((xi__x[i] / sample_mean_square_deviation_S), 2)
     f_ui[i] = round((1 / (math.sqrt(2 * math.pi)) * math.exp(-(math.pow(ui[i], 2) / 2))), 4)
     yi[i] = round((n*h / sample_mean_square_deviation_S * f_ui[i]), 1)
     ni[i] = int(round(yi[i]))
+    
+#################################################################
 
-n__ni = np.zeros(len(frequency_array_np))
-n__ni2 = np.zeros(len(frequency_array_np))
-n__ni2__ni = np.zeros(len(frequency_array_np))
-print('n_nnq',n__ni)
+##########           критерий Пирсона         ###################
+
+n__ni = np.zeros(ar_lengh)
+n__ni2 = np.zeros(ar_lengh)
+n__ni2__ni = np.zeros(ar_lengh)
 #хи в квадрате
 hi_square = 0
 
 number_of_degrees_of_freedom_k = k - 3
 
-for i in range(len(frequency_array_np)):
+for i in range(ar_lengh):
     n__ni[i] = frequency_array_np[i] - ni[i]
     n__ni2[i] = pow(n__ni[i], 2)
     n__ni2__ni[i] = n__ni2[i] / ni[i]
@@ -325,30 +328,70 @@ for i in range(len(frequency_array_np)):
     
 critical_value_hi_square = 0.711
 
+print('критерий Пирсона:')
+
 if (critical_value_hi_square > hi_square):
-    print('X2_0 < X0_кр, нет достаточных оснований отвергнуть выдвинутую гипотезу о нормальном распределении признака Х')
+    print('\n\nX2_0 < X0_кр, нет достаточных оснований отвергнуть выдвинутую гипотезу о нормальном распределении признака Х\n')
 else:
-    print('X2_0 < X0_кр, гипотеза о нормальном распределении признака Х отвергается')
+    print('\n\nX2_0 < X0_кр, гипотеза о нормальном распределении признака Х отвергается\n')
 
+######################################################################
 
-kolmogor = round((abs(np.max(frequency_array_np) - np.max(ni)) / math.sqrt(n)), 1)
+##########           критерий Кольмогорова         ###################
+
+statistics_lambda = round((abs(np.max(frequency_array_np) - np.max(ni)) / math.sqrt(n)), 1)
 sum_kolmogor_em = 0
 
 for i in range (1000):
-    sum_kolmogor_em = math.pow((-1), number_of_degrees_of_freedom_k) * math.exp(-2 * math.pow(number_of_degrees_of_freedom_k, 2) * math.pow(kolmogor, 2))
+    sum_kolmogor_em = math.pow((-1), number_of_degrees_of_freedom_k) * math.exp(-2 * math.pow(number_of_degrees_of_freedom_k, 2) * math.pow(statistics_lambda, 2))
 funk_kolmogor_em = 1 - sum_kolmogor_em
 
 funk_kolmogor_ter = 1.0000
 
+print('критерий Колмогорова:')
+
 if (abs(funk_kolmogor_em - funk_kolmogor_ter)>0.05):
-    print(round(abs(funk_kolmogor_em - funk_kolmogor_ter), 3), ': существенное расхождение между эмпирическим и теоретическим распределениями, которое нельзя считать \nслучайным. Следовательно, рассматриваемая выборка не может быть\n смоделирована нормальным законом распределения')
+    print('\nразница между эмпирическим распределением и теоретическим равна ', round(abs(funk_kolmogor_em - funk_kolmogor_ter), 3), 'существенное расхождение между эмпирическим и теоретическим распределениями, которое нельзя считать случайным. Следовательно, рассматриваемая выборка не может быть смоделирована нормальным законом распределения\n\n')
 else:
-    print(round(abs(funk_kolmogor_em - funk_kolmogor_ter), 3), 'расхождение между частотами может быть\nслучайным, и распределения хорошо соответствуют одно другому')
+    print('\nразница между эмпирическим распределением и теоретическим равна ', round(abs(funk_kolmogor_em - funk_kolmogor_ter), 3), 'расхождение между частотами может быть случайным, и распределения хорошо соответствуют одно другому\n\n')
 
 
+D_n_plus_ar = np.zeros(ar_lengh)
+D_n_minus_ar = np.zeros(ar_lengh)
 
-Sasymmetry_A_S = math.sqtr((6 * (n-1))/((n+1)*(n+3)))
-Sexcess_E_x = math.sqrt((24 * n(n-2)*(n-3))/(math.pow((n-1), 2) * (n+3) * (n+5)))
+for i in range(ar_lengh):
+    D_n_plus_ar[i] = i/n - 1 + math.exp(-1 * (interval_middle_array_np[i] / sample_average_x))
+    D_n_minus_ar[i] = 1 - math.exp(-1 * (interval_middle_array_np[i] / sample_average_x) - (i-1)/n)
+    
+D_n_plus = np.max(D_n_plus_ar)
+D_n_minus = np.max(D_n_minus_ar)
+Dn = max(D_n_minus, D_n_plus)
+
+lambda_kolmagor = 1.09
+
+if (((Dn - 0.2/n)*(math.sqrt(n) + 0.26 + 0.5/n)) <= lambda_kolmagor):
+    print('неравенство при выбранном λ𝛼 выполняется, эмпирическое распределение можно изучать на математической модели, подчиняющейся экспоненциальному закону распределения')
+else:
+    print('неравенство при выбранном λ𝛼 не выполняется, эмпирическое распределение нельзя изучать на математической модели, подчиняющейся экспоненциальному закону распределения')
+
+######################################################################
+
+##########           приближенный критерий         ###################
+
+Sasymmetry_A_S = math.sqrt((6 * (n-1))/((n+1)*(n+3)))
+Sexcess_E_x = math.sqrt((24 * n*(n-2)*(n-3))/(math.pow((n-1), 2) * (n+3) * (n+5)))
+
+
+if(abs(asymmetry_A_S) <= Sasymmetry_A_S) and (abs(excess_E_x) <= Sexcess_E_x):
+    print(' As ≤ SAs и Ex ≤ SEx, то выборочная совокупность подчиняется нормальному закону распределения')
+if(abs(asymmetry_A_S) > Sasymmetry_A_S) and (abs(excess_E_x) > Sexcess_E_x):
+    print('As > SAs и Ex > SEx, выборочная совокупность не будет распределена по нормальному закону')
+if(abs(asymmetry_A_S) > Sasymmetry_A_S) and (abs(excess_E_x) < Sexcess_E_x):
+    print('As > SAs и Ex < SEx, выборочная совокупность не будет распределена по нормальному закону')
+if(abs(asymmetry_A_S) < Sasymmetry_A_S) and (abs(excess_E_x) > Sexcess_E_x):
+    print('As < SAs и Ex > SEx, выборочная совокупность не будет распределена по нормальному закону')
+    
+hi_square_pribrej = math.pow(asymmetry_A_S, 2) / math.pow(Sasymmetry_A_S, 2) + math.pow(excess_E_x, 2) / math.pow(Sexcess_E_x, 2)
 ################################################################################################
 
 ######################                   графики                 ###############################
