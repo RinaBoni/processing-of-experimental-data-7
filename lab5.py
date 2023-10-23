@@ -125,7 +125,7 @@ with plt.style.context("dark_background"):
 
     figure = plt.figure()
     ax1 = figure.add_subplot(1, 2, 1)
-    # ax2 = figure.add_subplot(1, 2, 2)
+    ax2 = figure.add_subplot(1, 2, 2)
 
 
     ax1.scatter(x, regres_y, color='#9773ff', marker='o', label='Точки')
@@ -138,11 +138,11 @@ with plt.style.context("dark_background"):
     ax1.grid(color='grey')
     
     
-    # ax2.plot(x, y_galochka_x, color='#9773ff', label='Линия тренда')
-    # ax2.legend(loc='best')
-    # ax2.set_title('линейная регресия')
-    # ax2.set_xlabel('')
-    # ax2.set_ylabel('')
-    # ax2.grid(color='grey')
+    ax2.plot(x, y_galochka_x, color='#9773ff', label='Линия тренда')
+    ax2.legend(loc='best')
+    ax2.set_title('линейная регресия')
+    ax2.set_xlabel('')
+    ax2.set_ylabel('')
+    ax2.grid(color='grey')
     
     plt.show()
