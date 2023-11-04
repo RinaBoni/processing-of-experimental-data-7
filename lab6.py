@@ -1,83 +1,169 @@
-
-from sklearn.cluster import KMeans 
-
 import numpy as np
 import matplotlib.pyplot as plt
+from IPython.display import clear_output
 
-import matplotlib.colors as mcolors
+class Cluster2D:
 
-# Получите список всех доступных цветов
-colors = list(mcolors.TABLEAU_COLORS.keys())
+    def __init__(self, maxDeviation: float = 0, centroid: set = None, points: list = []):
+        self.Centroid = centroid
+        self.PreviousCentroid = centroid
+        self.MaxDeviation = maxDeviation
+        self.Points = list(points)
 
-# Выберите первые 10 цветов
-ten_colors = colors[:10]
+    def AddPoint(self, point: set):
+        if (self.Centroid is None):
+            self.Centroid = point
+            return
+        md = self.MaxDeviation
+        if (np.abs(point[0] - self.Centroid[0]) > md 
+            or np.abs(point[1] - self.Centroid[1]) > md):
+            return
+        self.Points.append(point)
+
+    def SetPoints(self, points: list):
+        self.Points = points
+
+    def UpdatePoints(self):
+        md = self.MaxDeviation
+        i = 0 
+        while i != len(self.Points):
+            p = self.Points[i]
+            if (np.abs(p[0] - self.Centroid[0]) > md 
+                or np.abs(p[1] - self.Centroid[1]) > md):
+                self.Points.remove(p)
+            else:
+                i += 1
+
+    def UpdateCentroid(self):
+        self.Centroid = (np.average([p[0] for p in self.Points]), 
+                            np.average([p[1] for p in self.Points]))
+        
+    def K_Means(self, max_iterations: int = 100):
+        self.UpdatePoints()
+        if (len(self.Points) < 1):
+            return
+        for _ in range(max_iterations):
+            self.PreviousCentroid = self.Centroid
+            self.UpdateCentroid()
+            if (self.Centroid == self.PreviousCentroid):
+                break
+            
 
 
-# Генерация 50 случайных величин в интервале (3, 8) для каждой координаты
-number_of_realizations = 50
-dimension = 9
-X = np.random.uniform(low=3, high=8, size=(number_of_realizations, dimension))
+LEN_POINTS_GROUP = 9
+LEN_DATA = 50
+LEN_POINTS = LEN_DATA * LEN_POINTS_GROUP
+POINT_COORDINATE_MIN_VALUE = 3
+POINT_COORDINATE_MAX_VALUE = 8
+CLUSTER_MAX_RADIUS = 0.15
 
-# Создание графика scatter
+P = np.array([[set() for j in range(LEN_POINTS_GROUP)]
+                for i in range(LEN_DATA)])
+for i in range(LEN_DATA):
+    for j in range(LEN_POINTS_GROUP):
+        x = np.random.uniform(POINT_COORDINATE_MIN_VALUE,
+                                POINT_COORDINATE_MAX_VALUE)
+        y = np.random.uniform(POINT_COORDINATE_MIN_VALUE,
+                                POINT_COORDINATE_MAX_VALUE)
+        P[i, j] = (x, y)
 
-
-model = KMeans(n_clusters=6, init='k-means++', max_iter=10, random_state=42)
-model.fit(X)
-lables = model.predict(X)
-lables[:10]
-
+P_FULL = P.reshape(LEN_POINTS)
 
 with plt.style.context("dark_background"):
-
-
+    
     figure = plt.figure()
     ax1 = figure.add_subplot(1, 2, 1)
     ax2 = figure.add_subplot(1, 2, 2)
+    
 
-    # ax1.figure(figsize=(8, 8))
-    ax1.scatter(X[:, 0], X[:, 1], )
+    for p in P_FULL:
+        ax1.scatter(p[0], p[1], c='gray', alpha=0.85)
+    ax1.set_xlabel('X')
+    ax1.set_ylabel('Y')
+    ax1.set_title('Points raw view')
+    
 
-    # Укажите другие координаты, если нужно, например: X[:, 1], X[:, 2], и т. д.
 
-    ax1.set_title('50 случайных реализаций')
-    ax1.set_xlabel('X1')
-    ax1.set_ylabel('X2')
-    ax1.grid(True)
-    # ax1.show()
+    P_FULL_LIST = P_FULL.tolist()
 
-    model.cluster_centers_
-    # ax2.figure(figsize=(8, 8))
-    for i in range(len(lables)):
-        ax2.scatter(X[i, 0], X[i, 1], color=ten_colors[lables[i]])
 
-    for i, centr in enumerate(model.cluster_centers_):
-        ax2.scatter(centr[0], centr[1], marker='*', s=500, c=ten_colors[i])
-        ax2.text(centr[0]-0.1, centr[1]-0.2, f'{i+1}')
+    def CalculateMaxes(points: np.ndarray, claster_max_radius: float = CLUSTER_MAX_RADIUS) -> set:
+        # Инициализация пустого списка для хранения информации о точках и установка максимального счетчика 'm' в 0
+        points_info = []
+        m = 0
+        
+        # Итерация по каждой точке в массиве 'points'
+        for p in points:
+            ps = []  # Инициализация пустого списка 'ps' для хранения близлежащих точек
+            
+            # Итерация по всем точкам снова для вычисления расстояний
+            for p1 in points:
+                distance = np.sqrt((p[0] - p1[0])**2 + (p[1] - p1[1])**2)  # Вычисление евклидова расстояния
+                
+                # Если расстояние больше 0 и меньше или равно 'claster_max_radius'
+                if (distance > 0 and distance <= claster_max_radius):
+                    ps.append(p1)  # Добавление близкой точки в 'ps'
+                    
+            lps = len(ps)  # Получение количества близлежащих точек
+            
+            if (lps > 0):
+                points_info.append((p, lps))  # Если есть близлежащие точки, добавить точку и количество в 'points_info'
+                
+            if (lps > m):
+                m = lps  # Обновление 'm', если найдено новое максимальное значение
+        
+        if (len(points_info) > 1):
+            # Если есть более одной точки с близлежащими соседями, найти точку с максимальным количеством соседей и вернуть ее
+            for pi in points_info:
+                if (pi[1] == m):
+                    return pi[0]
+        return points[0]  # Если у точек нет соседей, вернуть первую точку во входном массиве
+
+
+    # Инициализация счетчиков и установка начального радиуса
+    clusters_counter = 0
+    oneclusters_counter = 0
+    radius = CLUSTER_MAX_RADIUS
+
+    # Цикл до тех пор, пока все точки не будут обработаны
+    while (len(P_FULL_LIST) > 0):
+        mp = CalculateMaxes(P_FULL_LIST, radius)  # Найти точку с максимальным количеством соседей в текущем радиусе
+        c = Cluster2D(radius, mp, P_FULL_LIST)  # Создать объект Cluster2D с использованием радиуса и выбранной точки
+        c.K_Means()  # Применить алгоритм кластеризации K-Means к кластеру
+        
+        x, y = [], []  # Инициализация списков для хранения координат X и Y кластера
+        
+        # Сбор точек, принадлежащих текущему кластеру, и удаление их из основного списка
+        for p in c.Points:
+            P_FULL_LIST.remove(p)
+            x.append(p[0])
+            y.append(p[1])
+            
+        lp = len(c.Points)  # Получение количества точек в кластере
+        
+        # Установка параметров визуализации в зависимости от количества точек в кластере
+        info = [25, 0.35, None, 20] if lp > 1 else [10, 1.0, 'red', 10]
+        
+        # Получение цвета маркера центроида для однородной окраски
+        centroid_color = ax2.scatter(
+            c.Centroid[0], c.Centroid[1], info[0], info[2], marker='*', alpha=info[1]).get_edgecolor()
+        
+        # Рассеивание точек кластера с цветом центроида
+        ax2.scatter(x, y, info[3], c=centroid_color, alpha=1)
+        
+        clusters_counter += 1  # Инкремент счетчика кластеров
+        
+        if (lp == 1):
+            oneclusters_counter += 1  # Инкремент счетчика кластеров с одной точкой
+            
+        clear_output()  # Очистка вывода для лучшей визуализации прогресса
+        print(len(P_FULL_LIST))  # Вывод оставшегося количества точек
+
+
+    # Добавление заголовка и меток к конечному графику
+    ax2.set_title(f'Clusters: {clusters_counter}; One-clusters: {oneclusters_counter}')
+    ax2.set_ylabel('Y')
+    ax2.set_xlabel('X')
     
     
 plt.show()
-
-# centroid_ids = np.random.choice(X.shape[0], k, re)
-
-# wcss = []
-# for i in range(1, 11):
-#     kmeans = KMeans(n_clusters=i, init='k-means++', random_state=42)
-#     kmeans.fit(X)
-#     wcss.append(kmeans.inertia_)
-# # plt.plot(range(1,11), wcss)
-# # plt.title('Метод локтя')
-# # plt.xlabel('Количество кластеров')
-# # plt.ylabel('WCSS')
-# # plt.show()
-
-# kmeans = KMeans(n_clusters=6, init='k-means++', random_state=42)
-# y_kmeans = kmeans.fit_predict(X)
-
-# plt.scatter(X[y_kmeans == 0, 0], X[y_kmeans == 0, 1], s = 100, c = 'red', label = 'Кластер 1')
-# plt.scatter(X[y_kmeans == 1, 0], X[y_kmeans == 1, 1], s = 100, c = 'blue', label = 'Кластер 2')
-# plt.scatter(X[y_kmeans == 2, 0], X[y_kmeans == 2, 1], s = 100, c = 'green', label = 'Кластер 3')
-# plt.scatter(X[y_kmeans == 3, 0], X[y_kmeans == 3, 1], s = 100, c = 'cyan', label = 'Кластер 4')
-# plt.scatter(X[y_kmeans == 4, 0], X[y_kmeans == 4, 1], s = 100, c = 'magenta', label = 'Кластер 5')
-# plt.scatter(X[y_kmeans == 5, 0], X[y_kmeans == 5, 1], s = 100, c = 'yellow', label = 'Кластер 6')
-# plt.scatter(kmeans.cluster_centers_[0:, 0], kmeans.cluster_centers_[:, 1], s = 300, c='black')
-# plt.show()
